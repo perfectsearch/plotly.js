@@ -251,14 +251,10 @@ axes.handleTickDefaults = function(containerIn, containerOut, coerce, axType, op
                 coerce('showexponent', showAttrDflt);
                 coerce('exponentbase');
 
-                var exponentbase = containerIn.exponentbase;
-                var exponentformat = containerIn.exponentformat;
-                if (exponentbase !== 2 && exponentbase !== 10){
-                    coerce('exponentformat', 'power');
-                } else {
-                    coerce('exponentformat')
-                }
-                
+                var expBase = containerIn.exponentbase,
+                    expFormatDflt = (expBase !== 2 && expBase !== 10) ? 'power' : undefined;
+
+                coerce('exponentformat', expFormatDflt);
             }
         }
 
@@ -522,8 +518,7 @@ axes.autoType = function(array) {
 axes.getShowAttrDflt = function getShowAttrDflt(containerIn) {
     var showAttrsAll = ['showexponent',
                         'showtickprefix',
-                        'showticksuffix',
-                        'exponentbase'],
+                        'showticksuffix'],
         showAttrs = showAttrsAll.filter(function(a){
             return containerIn[a]!==undefined;
         }),
@@ -1844,13 +1839,9 @@ function numFormat(v, ax, fmtoverride, hover) {
     // add exponent
     if(exponent && exponentFormat !== 'hide') {
         var signedExponent;
-        if(exponent < 0){
-            signedExponent = '\u2212' + -exponent;  
-        } else if(exponentFormat !== 'power') {
-            signedExponent = '+' + exponent;
-        } else {
-            signedExponent = String(exponent);
-        }
+        if(exponent < 0) signedExponent = '\u2212' + -exponent;  
+        else if(exponentFormat !== 'power') signedExponent = '+' + exponent;
+        else signedExponent = String(exponent);
 
         if(exponentFormat === 'e' ||
                 ((exponentFormat === 'SI' || exponentFormat === 'B') &&

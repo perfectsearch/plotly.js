@@ -1116,7 +1116,8 @@ axes.autoBin = function(data,ax,nbins,is2d) {
     // piggyback off autotick code to make "nice" bin sizes
     var dummyax = {
         type: ax.type==='log' ? 'linear' : ax.type,
-        range:[datamin, datamax]
+        range:[datamin, datamax],
+        exponentbase: ax.exponentbase
     };
     axes.autoTicks(dummyax, size0);
     var binstart = axes.tickIncrement(
@@ -1392,9 +1393,11 @@ axes.autoTicks = function(ax, roughDTick){
         ax.dtick = Math.ceil(Math.max(roughDTick, 1));
     }
     else{
+        // Set default in case it's not set from an external call.
+        var exponentbase = ax.exponentbase ? ax.exponentbase : 10;
         // auto ticks always start at 0 and increment 
         ax.tick0 = 0;
-        base = Math.pow(ax.exponentbase, Math.floor(Math.log(roughDTick) / Math.log(ax.exponentbase)));
+        base = Math.pow(exponentbase, Math.floor(Math.log(roughDTick) / Math.log(exponentbase)));
         ax.dtick = roundDTick(roughDTick, base, roundBase10);
     }
 

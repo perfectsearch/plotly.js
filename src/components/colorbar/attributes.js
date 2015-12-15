@@ -167,6 +167,7 @@ module.exports = {
     showticksuffix: axesAttrs.showticksuffix,
     exponentformat: axesAttrs.exponentformat,
     showexponent: axesAttrs.showexponent,
+    exponentbase: axesAttrs.exponentbase,
     title: {
         valType: 'string',
         role: 'info',

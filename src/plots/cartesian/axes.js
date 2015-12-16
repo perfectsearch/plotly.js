@@ -251,7 +251,7 @@ axes.handleTickDefaults = function(containerIn, containerOut, coerce, axType, op
                 coerce('showexponent', showAttrDflt);
                 coerce('exponentbase');
 
-                var expBase = containerIn.exponentbase,
+                var expBase = containerOut.exponentbase,
                     expFormatDflt = (expBase !== 2 && expBase !== 10) ? 'power' : undefined;
 
                 coerce('exponentformat', expFormatDflt);

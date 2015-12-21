@@ -253,8 +253,8 @@ axes.handleTickDefaults = function(containerIn, containerOut, coerce, axType, op
                 var expBase = coerce('exponentbase'),
                     expFmtDflt = coerce('exponentformat');
 
-                if (+expBase !== 2 && +expBase !== 10) expFmtDflt = 'power';
-                if (+expBase === 2 && expFmtDflt !== 'SI') expFmtDflt = 'power';
+                if (expBase !== 2 && expBase !== 10) expFmtDflt = 'power';
+                if (expBase === 2 && expFmtDflt !== 'SI') expFmtDflt = 'power';
                 if (expBase === 'e'){
                     containerOut.exponentbase = Math.E;
                     containerOut.type = 'log';
@@ -624,10 +624,11 @@ axes.setConvert = function(ax) {
     // clipMult: how many axis lengths past the edge do we render?
     // for panning, 1-2 would suffice, but for zooming more is nice.
     // also, clipping can affect the direction of lines off the edge...
-    var clipMult = 10;
+    var clipMult = 10,
+        exponentbase = ax.exponentbase || 10;
 
     function toLog(v, clip){
-        if(v>0) return Math.log(v)/Math.log(ax.exponentbase);
+        if(v>0) return Math.log(v)/Math.log(exponentbase);
 
         else if(v<=0 && clip && ax.range && ax.range.length===2) {
             // clip NaN (ie past negative infinity) to clipMult axis
@@ -639,7 +640,7 @@ axes.setConvert = function(ax) {
 
         else return axes.BADNUM;
     }
-    function fromLog(v){ return Math.pow(10,v); }
+    function fromLog(v){ return Math.pow(exponentbase, v); }
     function num(v){ return isNumeric(v) ? Number(v) : axes.BADNUM; }
 
     ax.c2l = (ax.type==='log') ? toLog : num;
@@ -1093,7 +1094,9 @@ axes.expand = function(ax, data, options) {
 
 axes.autoBin = function(data,ax,nbins,is2d) {
     var datamin = Plotly.Lib.aggNums(Math.min, null, data),
-        datamax = Plotly.Lib.aggNums(Math.max, null, data);
+        datamax = Plotly.Lib.aggNums(Math.max, null, data),
+        exponentbase = ax.exponentbase || 10;
+
     if(ax.type==='category') {
         return {
             start: datamin-0.5,
@@ -1110,8 +1113,8 @@ axes.autoBin = function(data,ax,nbins,is2d) {
         // the size get smaller than the 'nice' rounded down minimum
         // difference between values
         var distinctData = Plotly.Lib.distinctVals(data),
-            msexp = Math.pow(ax.exponentbase, Math.floor(
-                Math.log(distinctData.minDiff) / Math.log(ax.exponentbase))),
+            msexp = Math.pow(exponentbase, Math.floor(
+                Math.log(distinctData.minDiff) / Math.log(exponentbase))),
             // TODO: there are some date cases where this will fail...
             minSize = msexp*Plotly.Lib.roundUp(
                 distinctData.minDiff/msexp, [0.9, 1.9, 4.9, 9.9], true);
@@ -1331,7 +1334,8 @@ function roundDTick(roughDTick, base, roundingSet) {
 //      log showing powers plus some intermediates:
 //          D1 shows all digits, D2 shows 2 and 5
 axes.autoTicks = function(ax, roughDTick){
-    var base;
+    var base,
+        exponentbase = ax.exponentbase || 10;
 
     if(ax.type === 'date'){
         ax.tick0 = new Date(2000, 0, 1).getTime();
@@ -1381,9 +1385,9 @@ axes.autoTicks = function(ax, roughDTick){
             var nt = 1.5 * Math.abs((ax.range[1] - ax.range[0]) / roughDTick);
 
             // ticks on a linear scale, labeled fully
-            roughDTick = Math.abs(Math.pow(ax.exponentbase, ax.range[1]) -
-                Math.pow(ax.exponentbase, ax.range[0])) / nt;
-            base = Math.pow(ax.exponentbase, Math.floor(Math.log(roughDTick) / Math.log(ax.exponentbase)));
+            roughDTick = Math.abs(Math.pow(exponentbase, ax.range[1]) -
+                Math.pow(exponentbase, ax.range[0])) / nt;
+            base = Math.pow(exponentbase, Math.floor(Math.log(roughDTick) / Math.log(exponentbase)));
             ax.dtick = 'L' + roundDTick(roughDTick, base, roundBase10);
         }
         else {
@@ -1398,8 +1402,6 @@ axes.autoTicks = function(ax, roughDTick){
         ax.dtick = Math.ceil(Math.max(roughDTick, 1));
     }
     else{
-        // Set default in case it's not set from an external call.
-        var exponentbase = ax.exponentbase ? ax.exponentbase : 10;
         // auto ticks always start at 0 and increment
         ax.tick0 = 0;
         base = Math.pow(exponentbase, Math.floor(Math.log(roughDTick) / Math.log(exponentbase)));
@@ -1424,7 +1426,8 @@ axes.autoTicks = function(ax, roughDTick){
 //      or an integer # digits past seconds
 function autoTickRound(ax) {
     var dtick = ax.dtick,
-        maxend;
+        maxend,
+        exponentbase = ax.exponentbase || 10;
 
     ax._tickexponent = 0;
     if(!isNumeric(dtick) && typeof dtick !== 'string') dtick = 1;
@@ -1441,14 +1444,14 @@ function autoTickRound(ax) {
         else {
             if(!isNumeric(dtick)) dtick = Number(dtick.substr(1));
             // 2 digits past largest digit of dtick
-            ax._tickround = 2 - Math.floor(Math.log(dtick) / Math.log(ax.exponentbase) + 0.01);
+            ax._tickround = 2 - Math.floor(Math.log(dtick) / Math.log(exponentbase) + 0.01);
 
             if(ax.type === 'log') {
-                maxend = Math.pow(ax.exponentbase, Math.max(ax.range[0], ax.range[1]));
+                maxend = Math.pow(exponentbase, Math.max(ax.range[0], ax.range[1]));
             }
             else maxend = Math.max(Math.abs(ax.range[0]), Math.abs(ax.range[1]));
 
-            var rangeexp = Math.floor(Math.log(maxend) / Math.log(ax.exponentbase) + 0.01);
+            var rangeexp = Math.floor(Math.log(maxend) / Math.log(exponentbase) + 0.01);
             if(Math.abs(rangeexp) > 3) {
                 if(ax.exponentformat === 'SI' || ax.exponentformat === 'B') {
                     ax._tickexponent = 3 * Math.round((rangeexp - 1) / 3);
@@ -1508,7 +1511,9 @@ axes.tickFirst = function(ax){
         // that may have been rounded out
         r0 = ax.range[0] * 1.0001 - ax.range[1] * 0.0001,
         dtick = ax.dtick,
-        tick0 = ax.tick0;
+        tick0 = ax.tick0,
+        exponentbase = ax.exponentbase || 10;
+
     if(isNumeric(dtick)) {
         var tmin = sRound((r0 - tick0) / dtick) * dtick + tick0;
 
@@ -1543,14 +1548,14 @@ axes.tickFirst = function(ax){
     // Log scales: Linear, Digits
     else if(tType === 'L') {
         return Math.log(sRound(
-            (Math.pow(ax.exponentbase, r0) - tick0) / dtNum) * dtNum + tick0) / Math.log(ax.exponentbase);
+            (Math.pow(exponentbase, r0) - tick0) / dtNum) * dtNum + tick0) / Math.log(exponentbase);
     }
     else if(tType === 'D') {
         var tickset = (dtick === 'D2') ? roundLog2 : roundLog1,
             frac = Plotly.Lib.roundUp(mod(r0, 1), tickset, axrev);
 
         return Math.floor(r0) +
-            Math.log(d3.round(Math.pow(ax.exponentbase, frac), 1)) / Math.log(ax.exponentbase);
+            Math.log(d3.round(Math.pow(exponentbase, frac), 1)) / Math.log(exponentbase);
     }
     else throw 'unrecognized dtick ' + String(dtick);
 };
@@ -1696,7 +1701,7 @@ function formatDate(ax, out, hover, extraPrecision) {
 
 function formatLog(ax, out, hover, extraPrecision, hideexp) {
     var dtick = ax.dtick,
-        base = ax.exponentbase,
+        base = ax.exponentbase || 10,
         x = out.x;
     if(extraPrecision && ((typeof dtick !== 'string') || dtick.charAt(0)!=='L')) dtick = 'L3';
 
@@ -1771,8 +1776,8 @@ function numFormat(v, ax, fmtoverride, hover) {
         tickRound = ax._tickround,
         exponentFormat = fmtoverride || ax.exponentformat || 'B',
         exponent = ax._tickexponent,
-        base = +ax.exponentbase || 10,
-        isBase10 = (base === 10),
+        exponentbase = ax.exponentbase || 10,
+        isBase10 = (exponentbase === 10),
         tickformat = ax.tickformat;
 
     // special case for hover: set exponent just for this value, and
@@ -1781,7 +1786,7 @@ function numFormat(v, ax, fmtoverride, hover) {
         // make a dummy axis obj to get the auto rounding and exponent
         var ah = {
             exponentformat:ax.exponentformat,
-            exponentbase: ax.exponentbase,
+            exponentbase: exponentbase,
             dtick: ax.showexponent==='none' ? ax.dtick :
                 (isNumeric(v) ? Math.abs(v) || 1 : 1),
             // if not showing any exponents, don't change the exponent
@@ -1797,7 +1802,7 @@ function numFormat(v, ax, fmtoverride, hover) {
     if(tickformat) return d3.format(tickformat)(v).replace(/-/g,'\u2212');
 
     // 'epsilon' - rounding increment
-    var e = isBase10 ? Math.pow(base, -tickRound) / 2 : 0;
+    var e = isBase10 ? Math.pow(exponentbase, -tickRound) / 2 : 0;
     // var e = 0;
 
     // exponentFormat codes:
@@ -1824,7 +1829,7 @@ function numFormat(v, ax, fmtoverride, hover) {
         // take out a common exponent, if any
         // Special case for base 2 to follow "SI"
         if(exponent){
-            v *= Math.pow(base, -exponent);
+            v *= Math.pow(exponentbase, -exponent);
             tickRound += exponent;
         }
 
@@ -1860,16 +1865,16 @@ function numFormat(v, ax, fmtoverride, hover) {
         } else if(exponentFormat === 'B' && exponent === 9) {
             v += 'B';
         } else if(exponentFormat === 'SI' || exponentFormat === 'B') {
-            if(base === 2 && exponent >= 10){
-                v = v * Math.pow(base, (exponent - 10));
+            if(exponentbase === 2 && exponent >= 10){
+                v = v * Math.pow(exponentbase, (exponent - 10));
                 exponent -= 9;
-            } else if(base === 2 && exponent < 10){
-                v = v * Math.pow(base, (exponent));
+            } else if(exponentbase === 2 && exponent < 10){
+                v = v * Math.pow(exponentbase, (exponent));
                 exponent = 0;
             }
             v += SIPREFIXES[exponent / 3 + 5];
         } else {
-            v += '&times;' + base + '<sup>' + signedExponent + '</sup>';
+            v += '&times;' + exponentbase + '<sup>' + signedExponent + '</sup>';
         }
     }
 

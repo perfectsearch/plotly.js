@@ -470,15 +470,16 @@ function getInterpPx(pi, loc, step) {
 }
 
 function makeContourGroup(plotinfo, cd, id) {
-    plotinfo.plot.selectAll('g.contour.' + id).remove();
-
     var plotgroup = plotinfo.plot.select('.maplayer')
         .selectAll('g.contour.' + id)
         .data(cd);
+
     plotgroup.enter().append('g')
         .classed('contour', true)
         .classed(id, true);
+
     plotgroup.exit().remove();
+
     return plotgroup;
 }
 

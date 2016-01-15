@@ -19,11 +19,13 @@ var getColorscale = require('../../components/colorscale/get_scale');
 var maxRowLength = require('./max_row_length');
 
 
-// From http://www.xarg.org/2010/03/generate-client-side-png-files-using-javascript/
 module.exports = function(gd, plotinfo, cdheatmaps) {
-    cdheatmaps.forEach(function(cd) { plotOne(gd, plotinfo, cd); });
+    for(var i = 0; i < cdheatmaps.length; i++) {
+        plotOne(gd, plotinfo, cdheatmaps[i]);
+    }
 };
 
+// From http://www.xarg.org/2010/03/generate-client-side-png-files-using-javascript/
 function plotOne(gd, plotinfo, cd) {
     Lib.markTime('in Heatmap.plot');
 

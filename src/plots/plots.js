@@ -106,7 +106,6 @@ plots.traceIs = function traceIs(traceType, category) {
     return !!_module.categories[category];
 };
 
-
 /**
  * plots.registerSubplot: register a subplot type
  *

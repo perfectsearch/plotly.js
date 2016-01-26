@@ -338,52 +338,13 @@ function positionPlayWithData(gd, container){
         })
         .text(gd._context.linkText + ' ' + String.fromCharCode(187));
 
-    if(gd._context.sendData) {
-        link.on('click', function() {
-            plots.sendDataToCloud(gd);
-        });
-    }
-    else {
-        var path = window.location.pathname.split('/');
-        var query = window.location.search;
-        link.attr({
-            'xlink:xlink:show': 'new',
-            'xlink:xlink:href': '/' + path[2].split('.')[0] + '/' + path[1] + query
-        });
-    }
+    var path = window.location.pathname.split('/');
+    var query = window.location.search;
+    link.attr({
+        'xlink:xlink:show': 'new',
+        'xlink:xlink:href': '/' + path[2].split('.')[0] + '/' + path[1] + query
+    });
 }
-plots.sendDataToCloud = function(gd) {
-    gd.emit('plotly_beforeexport');
-
-    var baseUrl = (window.PLOTLYENV && window.PLOTLYENV.BASE_URL) || 'https://plot.ly';
-
-    var hiddenformDiv = d3.select(gd)
-        .append('div')
-        .attr('id', 'hiddenform')
-        .style('display', 'none');
-
-    var hiddenform = hiddenformDiv
-        .append('form')
-        .attr({
-            action: baseUrl + '/external',
-            method: 'post',
-            target: '_blank'
-        });
-
-    var hiddenformInput = hiddenform
-        .append('input')
-        .attr({
-            type: 'text',
-            name: 'data'
-        });
-
-    hiddenformInput.node().value = plots.graphJson(gd, false, 'keepdata');
-    hiddenform.node().submit();
-    hiddenformDiv.remove();
-
-    gd.emit('plotly_afterexport');
-    return false;
-};
 
 plots.supplyDefaults = function(gd) {
     // fill in default values:

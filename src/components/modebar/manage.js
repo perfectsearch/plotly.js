@@ -88,9 +88,6 @@ function getButtonGroups(gd, buttonsToRemove, buttonsToAdd) {
         groups.push(out);
     }
 
-    // buttons common to all plot types
-    addGroup(['toImage', 'sendDataToCloud']);
-
     if(fullLayout._hasGL3D) {
         addGroup(['zoom3d', 'pan3d', 'orbitRotation', 'tableRotation']);
         addGroup(['resetCameraDefault3d', 'resetCameraLastSave3d']);

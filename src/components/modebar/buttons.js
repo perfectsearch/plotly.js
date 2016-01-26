@@ -94,15 +94,6 @@ modeBarButtons.toImage = {
     }
 };
 
-modeBarButtons.sendDataToCloud = {
-    name: 'sendDataToCloud',
-    title: 'Save and edit plot in cloud',
-    icon: Icons.disk,
-    click: function(gd) {
-        Plotly.Plots.sendDataToCloud(gd);
-    }
-};
-
 modeBarButtons.zoom2d = {
     name: 'zoom2d',
     title: 'Zoom',
